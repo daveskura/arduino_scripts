@@ -1,0 +1,32 @@
+https://freetts.com/#ads
+
+English (UK) Brian
+
+
+Switch on
+
+ - Good morning sir
+ - Good morning sir, the power is on
+ - The chicken car is ready to go  
+ - Auto Chicken is on, starting forward
+ - Auto Chicken is on, starting in reverse 
+ - Auto Chicken is off.  The car will remain here until you move it
+ 
+ - mind your beaks and feet, moving forwards this time
+ - heads up chickens, going to move a bit forward
+
+ - careful chickens, moving backwards this time
+ - look alive chickens, we're heading backward a little
+ 
+
+
+
+
+** Need volt sensor ***
+ - The battery is showing over 13 volts
+ - The battery is showing over 14 volts
+ - I do have some conerns that the battery is less than 14 volts
+ - Sir, the battery is less than 13 volts.  
+ - I think the chicken car needs to charge a while before using
+ 
+

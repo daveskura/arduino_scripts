@@ -1,0 +1,70 @@
+To generate MP3 files for chicken car
+go here: https://freetts.com/#ads
+select: English (UK) Brian
+
+Put on MicroSD drive, in folder 99
+Named uniquely following the format NNN.mp3
+update the filename, mp3 audio content arrays in chicken_audio.h
+
+	
+When to play a voice file:
+
+1) Power on
+	a) Good morning sir.
+	b) Good morning sir, the power is on.
+	c) The chicken car is ready to go.
+	d) Might I suggest checking the battery voltage soon
+
+2) Autochicken toggle change
+	a) Auto Chicken is on, starting forward
+	b) Auto Chicken is on, starting in reverse 
+	c) Auto Chicken is off.  The car will remain stationary until you move it
+
+3) Autochicken, forward, backward toggle change
+	a) Auto Chicken is on, starting forward
+	b) Auto Chicken is on, starting in reverse 
+	c) Auto Chicken is off.  The car will remain stationary until you move it
+
+4) RF/Local toggle change
+	a) The control mechanism has been set to Radio frequency.  You'll need the remote control to move the Chicken car.
+	a) The control mechanism has been set to local.  You can lift the lid on the joystick compartment and control the chicken car with the oncar joystick.
+
+5) When in Autochicken mode and changing direction next move
+ a)
+	i) mind your beaks and feet, moving forwards this time
+	ii) heads up chickens, going to move a bit forward
+ c) 
+	i) careful chickens, moving backwards this time
+	ii) look alive chickens, we're heading backward a little
+
+6) When Radio is turned on, or MP3 playlist cycled.  Button should cycle Radio or playlists.  Announcing each playlist or radio station, then proceeding in a few seconds to play the songs.
+	a) Dance music
+	b) 80s Retro
+	c) Rock ... well ... Chicken Rock
+	d) boom 97.3 on the FM dial
+	e) dropping the needle
+
+7) When Status button is pressed
+	a) Auto Chicken is on, moving forward
+	b) moved forward 10 feet already, will move forward again 3 more times, then start backward
+	c) moved backward 10 feet , will move backward again 3 more times, then start forward
+
+
+
+
+
+Sensors to consider
+
+Motion ?
+temp ?
+light ?
+
+
+volt sensor
+ - The battery is showing over 13 volts
+ - The battery is showing over 14 volts
+ - I do have some conerns that the battery is less than 14 volts
+ - Sir, the battery is less than 13 volts.  
+ - I think the chicken car needs to charge a while before using
+ 
+
