@@ -59,8 +59,8 @@ Servo myservo;
 const String device_name = "Rat Trap";
 const String Version = "2.1.20230301";
 const int ispring_trap_position = 106; // This is the position of the servo which is deemed to spring the trap
-const unsigned long WAIT_PERIOD = 30000;  //the value is a number of milliseconds
-const unsigned long MOTION_DELTA = 20;  
+const unsigned long WAIT_PERIOD = 5000;  //the value is a number of milliseconds
+const unsigned long MOTION_DELTA = 10;  
 
 const String RFMsg_AskRatTrap = "Ask about Rat Trap";
 
@@ -156,7 +156,6 @@ void loop() {
       }    
     
   }  
-	delay(1000);
 }
 
 
@@ -164,18 +163,12 @@ void set_TX_mode(){
   if (gbl_RF_Mode != "TX") {
     gbl_RF_Mode = "TX";
     //radio.stopListening(); // put radio in TX mode
-		if (DEBUG_ON == 1) {
-			Serial.println("radio.stopListening(); // put radio in TX mode");
-		}
   }
 }
 void set_RX_mode(){
   if (gbl_RF_Mode != "RX") {
     gbl_RF_Mode = "RX";
     //radio.startListening(); // put radio in RX mode
-		if (DEBUG_ON == 1) {
-	    Serial.println("radio.startListening(); // put radio in RX mode");
-		}
   }
 }
 void RF_Send_Info(){
@@ -215,6 +208,7 @@ void RF_Send_Info(){
 }
 
 int chk_for_motion() {
+  int return_value = 0;
 	int delta_motion = 0;
   gbl_currentMillis = millis();  
   unsigned long count_down;
@@ -232,16 +226,13 @@ int chk_for_motion() {
     }
 
     if (pirStat < gbl_previous_motion) {
-      if ((gbl_previous_motion - pirStat) > MOTION_DELTA) {
         delta_motion = (gbl_previous_motion - pirStat);        
-      } 
     } else if (pirStat > gbl_previous_motion) {
-      if ((pirStat - gbl_previous_motion) > MOTION_DELTA) {
         delta_motion = (pirStat - gbl_previous_motion);        
-      } 
     }
 
-    if (DEBUG_ON == 1 and delta_motion > 0) {
+    if (delta_motion > MOTION_DELTA) {
+      return_value = delta_motion;
       Serial.print("Motion Detected, pirStat=");
       Serial.print(pirStat);
       Serial.print(", ");
@@ -264,5 +255,5 @@ int chk_for_motion() {
     gbl_startMillis = gbl_currentMillis - WAIT_PERIOD;
   }
 
-	return delta_motion;
+	return return_value;
 }
