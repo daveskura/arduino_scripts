@@ -25,13 +25,19 @@
 	BUTTON2
 	 PIN  5
 
+	BUTTON3
+	 PIN  A3
+
+	BUTTON4
+	 PIN  A4
+
 	Infared motion sensor
 	 +5vdc
 	 GND
-	 PIN  A5
+	 PIN  A2
 	
 */
-const int DEBUG_ON=0;
+const int DEBUG_ON=1;
 const int BROADCAST_RF = 0;
 
 #define NRF24L01_CE 9
@@ -42,16 +48,18 @@ const int BROADCAST_RF = 0;
 #include <RF24.h>
 #include <Servo.h>
 
-#define MOTION_SENSOR_PIN A5
+#define MOTION_SENSOR_PIN A2
 
 #define SERVO_PIN 2
 #define BUTTON1 6
 #define BUTTON2 5
+#define BUTTON3 A3
+#define BUTTON4 A4
 
 Servo myservo;  
 
 String device_name = "Rat Trap";
-String Version = "2.0.20211202";
+String Version = "2.1.20211222";
 int ispring_trap_position = 106; // This is the position of the servo which is deemed to spring the trap
 int pos = 106;    // variable to store the servo position
 float motion_detected = 0;
@@ -144,17 +152,12 @@ void setup() {
   if (DEBUG_ON == 1) {
     Serial.begin(9600);
     Serial.println("Initializing");
-    myservo.write(1);              // tell servo to go to position in variable 'pos'
-    delay(1000);
-    myservo.write(180);              // tell servo to go to position in variable 'pos'
-    delay(1000);
-    myservo.write(90);              // tell servo to go to position in variable 'pos'
-    delay(1000);
-
   }
 
   pinMode(BUTTON1,INPUT_PULLUP);
   pinMode(BUTTON2,INPUT_PULLUP);
+  pinMode(BUTTON3,INPUT_PULLUP);
+  pinMode(BUTTON4,INPUT_PULLUP);
   myservo.attach(SERVO_PIN);  
   motion_detected = 0;
 
@@ -240,15 +243,25 @@ void chk_for_motion() {
 void loop() {
 	int btn1 = digitalRead(BUTTON1); 
 	int btn2 = digitalRead(BUTTON2); 
+	int btn3 = digitalRead(BUTTON3); 
+	int btn4 = digitalRead(BUTTON4); 
   if (DEBUG_ON == 1) {
     Serial.print("btn1=");
     Serial.print(btn1);
-    Serial.print(", btn2=");
-    Serial.println(btn2);
-    delay(1000);
+    Serial.print(",");
+    Serial.print("btn2=");
+    Serial.print(btn2);
+    Serial.print(",");
+    Serial.print("btn3=");
+    Serial.print(btn3);
+    Serial.print(",");
+    Serial.print("btn4=");
+    Serial.print(btn4);
+    Serial.println("");
+    delay(1000);  
   }  
    // button1 is pressed
-  if (btn1 == LOW) {
+  if ((btn1 == LOW) or (btn3 == LOW) ){
     if (pos < 180) {
       pos = pos + 1; // goes from 0 degrees to 180 degrees
       //Serial.println(pos);
@@ -256,7 +269,7 @@ void loop() {
       //myservo.write(106);              // tell servo to go to position in variable 'pos'
       delay(15);                       // waits 15 ms for the servo to reach the position
     }
-  } else if (btn2 == LOW) {
+  } else if ((btn2 == LOW) or (btn4 == LOW)){
     if (pos > 0) {
       pos = pos - 1; // goes from 0 degrees to 180 degrees
       //Serial.println(pos);
