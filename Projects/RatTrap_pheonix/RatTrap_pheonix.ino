@@ -33,8 +33,8 @@ const byte address[6] = "00001";
 int RF_msg_len = 50;
 String RF_Mode = ""; // TX for transmit or RX for receive
 
-const int SENSOR_TRIG_PIN = 9;
-const int SENSOR_ECHO_PIN = 10;
+const int SENSOR_TRIG_PIN = 4;
+const int SENSOR_ECHO_PIN = 5;
 
 const unsigned long WARMUP_TIME = 1000;  //the value is a number of milliseconds
 const unsigned long ARMING_TIME = 5000;  //the value is a number of milliseconds
@@ -61,6 +61,11 @@ unsigned long gbl_currentMillis;
 
 void setup() {
   Serial.begin(9600); // Starts the serial communication
+	pinMode(SENSOR_TRIG_PIN, OUTPUT); // Sets the SENSOR_TRIG_PIN as an Output
+  pinMode(SENSOR_ECHO_PIN, INPUT); // Sets the SENSOR_ECHO_PIN as an Input
+	pinMode(BUTTON1,INPUT_PULLUP);
+  pinMode(BUTTON2,INPUT_PULLUP);
+
   gbl_startMillis = millis();  //initial start time
 
   gbl_min_sensor_reading = 52;
@@ -69,22 +74,16 @@ void setup() {
   gbl_ready_to_use = false;
   gbl_trap_sprung = false;
 
+	myservo.attach(SERVO_PIN); 
+  
   radio.begin();
   radio.openReadingPipe(0, address);
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_MIN);
-	set_TX_mode();
-
-	pinMode(BUTTON1,INPUT_PULLUP);
-  pinMode(BUTTON2,INPUT_PULLUP);
-
-	pinMode(SENSOR_TRIG_PIN, OUTPUT); // Sets the SENSOR_TRIG_PIN as an Output
-  pinMode(SENSOR_ECHO_PIN, INPUT); // Sets the SENSOR_ECHO_PIN as an Input
-	int sensor_reading = get_sensor_reading();
-
-	myservo.attach(SERVO_PIN); 
+	
+  set_TX_mode();
   
-  RFsendmsg("Warming up.");
+  RFsendmsg("Warming up. checking sensor.");
 
 }
 
@@ -104,11 +103,10 @@ void loop() {
 		  gbl_ready_to_use = true;
 	}
   
-  if ((readiness_countdown > warm_arm_time) and (not gbl_armed) and (not gbl_trap_sprung)) {
+  if ((readiness_countdown > warm_arm_time) and (not gbl_armed) and (gbl_ready_to_use)) {
       RFsendmsg("Trap Armed.");
       gbl_armed = true;
-  }
-  
+  }  
 
 	if (btn1 == LOW) {
     if (gbl_servo_pos < 180) {
@@ -132,7 +130,7 @@ void loop() {
       myservo.write(gbl_servo_pos);              // tell servo to go to position in variable 'gbl_servo_pos'
       delay(15);                       // waits 15 ms for the servo to reach the position
     }
-  } else if (not gbl_trap_sprung) {
+  } else if (gbl_armed) {
 		check_sensor_ranges();
 		delay(2000);
 	}
@@ -140,11 +138,12 @@ void loop() {
 }
 
 void RFsendmsg(String M) {
-  Serial.println(M);
 	char text[RF_msg_len] = "";
 	M.toCharArray(text,RF_msg_len);
 	bool ok = radio.write(&text,RF_msg_len);
+  Serial.println(M);
 }
+
 void set_TX_mode(){
   if (RF_Mode != "TX") {
     RF_Mode = "TX";
@@ -157,6 +156,7 @@ void set_RX_mode(){
     radio.startListening(); // put radio in RX mode
   }
 }
+
 void trigger_alarm() {
 	gbl_ready_to_use = false;
 	gbl_armed = false;
@@ -175,7 +175,6 @@ void check_sensor_ranges() {
   M += String(sensor_reading, DEC);
 
   if (gbl_armed) {
-
     RFsendmsg(M);
 
     if (sensor_reading < gbl_min_sensor_reading) {
