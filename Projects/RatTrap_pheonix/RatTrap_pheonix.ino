@@ -44,6 +44,7 @@ unsigned long gbl_startMillis;
 unsigned long gbl_currentMillis;
 
 void setup() {
+  exit(0);
   Serial.begin(9600); // Starts the serial communication
   gbl_startMillis = millis();  //initial start time
   
