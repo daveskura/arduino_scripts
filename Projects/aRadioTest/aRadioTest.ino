@@ -31,12 +31,12 @@ void RFsendmsg(String M) {
 	char text[RF_msg_len] = "";
 	M.toCharArray(text,RF_msg_len);
 	bool ok = radio.write(&text,RF_msg_len);
-  Serial.print(M);
+  Serial.println(M);
 }
 
 void loop() {
 	RFsendmsg("Test RF");
-	delay(5000);
+	delay(2000);
 }
 
 void set_TX_mode(){
