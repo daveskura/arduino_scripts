@@ -161,20 +161,20 @@ void trigger_alarm() {
 	gbl_ready_to_use = false;
 	gbl_armed = false;
   gbl_trap_sprung = true;
-	RFsendmsg(" Alarm triggered ");
+	//RFsendmsg(" Alarm triggered ");
 	myservo.write(SPRING_TRAP_POS);
 }
 
 void check_sensor_ranges() {
   int reading_spike = 0;
 	int sensor_reading = get_sensor_reading();
+  String M = String(gbl_min_sensor_reading, DEC);
+  M += " - ";
+  M += String(gbl_max_sensor_reading, DEC);
+  M += ": ";
+  M += String(sensor_reading, DEC);
+
   if (gbl_armed) {
-    
-    String M = String(gbl_min_sensor_reading, DEC);
-    M += " - ";
-    M += String(gbl_max_sensor_reading, DEC);
-    M += ": ";
-    M += String(sensor_reading, DEC);
 
     RFsendmsg(M);
 
@@ -186,6 +186,10 @@ void check_sensor_ranges() {
     }
 
     if (reading_spike > ALARM_THRESHOLD){
+      M += ": ";
+      M += String(reading_spike, DEC);
+      M += String("- ARLM ");
+      RFsendmsg(M);
       trigger_alarm();
     }
   }
