@@ -27,6 +27,11 @@ void loop() {
   gbl_duration = pulseIn(echoPin, HIGH);
   // Calculating the distance
   gbl_distance = gbl_duration * 0.034 / 2;
+ 
+  Serial.print("gbl_duration: ");
+  Serial.print(gbl_duration);
+  Serial.print(", ");
+
   // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(gbl_distance);
