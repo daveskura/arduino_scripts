@@ -44,7 +44,6 @@ unsigned long gbl_startMillis;
 unsigned long gbl_currentMillis;
 
 void setup() {
-  exit(0);
   Serial.begin(9600); // Starts the serial communication
   gbl_startMillis = millis();  //initial start time
   
@@ -143,4 +142,5 @@ int get_sensor_reading() {
   duration = pulseIn(SENSOR_ECHO_PIN, HIGH);
   // Calculating the distance
   distance = duration * 0.034 / 2;
+  return distance;
 }
