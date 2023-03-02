@@ -33,8 +33,8 @@ const byte address[6] = "00001";
 int RF_msg_len = 50;
 String RF_Mode = ""; // TX for transmit or RX for receive
 
-const int SENSOR_TRIG_PIN = 9;
-const int SENSOR_ECHO_PIN = 10;
+const int SENSOR_TRIG_PIN = 4;
+const int SENSOR_ECHO_PIN = 5;
 
 const unsigned long WARMUP_TIME = 1000;  //the value is a number of milliseconds
 const unsigned long ARMING_TIME = 5000;  //the value is a number of milliseconds
@@ -76,21 +76,18 @@ void setup() {
 
 	myservo.attach(SERVO_PIN); 
   
-  /*radio.begin();
+  radio.begin();
   radio.openReadingPipe(0, address);
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_MIN);
 	
   set_TX_mode();
-  */
-  //RFsendmsg("Warming up. checking sensor.");
+  
+  RFsendmsg("Warming up. checking sensor.");
 
 }
 
 void loop() {
-  Serial.println(get_sensor_reading());
-  delay(2000);
-/*
 	int btn1 = digitalRead(BUTTON1); 
 	int btn2 = digitalRead(BUTTON2); 
 
@@ -137,7 +134,7 @@ void loop() {
 		check_sensor_ranges();
 		delay(2000);
 	}
-*/
+
 }
 
 void RFsendmsg(String M) {
@@ -179,8 +176,6 @@ void check_sensor_ranges() {
     msg += ": ";
     msg += String(sensor_reading, DEC);
     
-    Serial.println(msg);
-
     RFsendmsg(msg);
 
     if (sensor_reading < gbl_min_sensor_reading) {
