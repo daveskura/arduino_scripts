@@ -1,20 +1,23 @@
 /*arduino:avr:nano:cpu=atmega328old
 
-Potentiometer connected to 5V and GND and pin A5
+	(NRF24L01) Wireless Module Transceiver 
+	CE		->	7
+	CSN		->	8
+	MOSI	->	11
+	SCK		->	13
+	IRQ		->	Not Used	
+	MISC	->	12
 
 */
-#define POTENTIOMETER_PIN A5 // Potentiometer output connected to analog pin 0
-float potVal = 0; // Variable to store the input from the potentiometer, [0 .. 879]
+
+#include <RF24.h>
+
+RF24 radio(7, 8); // CE, CSN
 
 void setup() {
 	Serial.begin(9600);           // Set comm speed for serial plotter window
 }
 
 void loop() {
-  potVal = analogRead(POTENTIOMETER_PIN);   // read the potentiometer value at the input pin
-
-	Serial.print("potVal: ");
-	Serial.println(potVal);
-	delay(5000);
 
 }

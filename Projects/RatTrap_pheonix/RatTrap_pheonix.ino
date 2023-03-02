@@ -13,6 +13,14 @@
 
 	BUTTON2
 	 PIN  A3
+
+	(NRF24L01) Wireless Module Transceiver 
+	CE		->	7
+	CSN		->	8
+	MOSI	->	11
+	SCK		->	13
+	IRQ		->	Not Used	
+	MISC	->	12
 */
 
 const String VERSION = "3.0.20230302";
