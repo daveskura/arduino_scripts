@@ -167,4 +167,5 @@ int get_sensor_reading() {
   duration = pulseIn(SENSOR_ECHO_PIN, HIGH);
   // Calculating the distance
   distance = duration * 0.034 / 2;
+  return distance;
 }

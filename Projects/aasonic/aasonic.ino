@@ -1,8 +1,7 @@
-/*arduino:avr:nano
+/*arduino:avr:uno
   Dave Skura, 2022
 	Ultrasonic Distance Sensor - HC-SR04
 */
-
 const int trigPin = 9;
 const int echoPin = 10;
 
@@ -14,7 +13,6 @@ void setup() {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   Serial.begin(9600); // Starts the serial communication
-  Serial.print("hello");
 }
 void loop() {
   // Clears the trigPin
@@ -28,11 +26,6 @@ void loop() {
   gbl_duration = pulseIn(echoPin, HIGH);
   // Calculating the distance
   gbl_distance = gbl_duration * 0.034 / 2;
- 
-  Serial.print("gbl_duration: ");
-  Serial.print(gbl_duration);
-  Serial.print(", ");
-
   // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(gbl_distance);
