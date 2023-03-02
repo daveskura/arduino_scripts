@@ -27,13 +27,15 @@ void setup() {
 	set_TX_mode();
 
 }
-
-void loop() {
-	String M = "Test RF";
+void RFsendmsg(String M) {
 	char text[RF_msg_len] = "";
 	M.toCharArray(text,RF_msg_len);
 	bool ok = radio.write(&text,RF_msg_len);
   Serial.print(M);
+}
+
+void loop() {
+	RFsendmsg("Test RF");
 	delay(5000);
 }
 

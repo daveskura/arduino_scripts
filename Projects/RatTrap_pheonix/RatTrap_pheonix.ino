@@ -26,7 +26,12 @@
 const String VERSION = "3.0.20230302";
 
 #include <Servo.h>
+#include <RF24.h>
 
+RF24 radio(7, 8); // CE, CSN
+const byte address[6] = "00001";
+int RF_msg_len = 50;
+String RF_Mode = ""; // TX for transmit or RX for receive
 
 const int SENSOR_TRIG_PIN = 9;
 const int SENSOR_ECHO_PIN = 10;
@@ -64,6 +69,12 @@ void setup() {
   gbl_ready_to_use = false;
   gbl_trap_sprung = false;
 
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+	set_TX_mode();
+
 	pinMode(BUTTON1,INPUT_PULLUP);
   pinMode(BUTTON2,INPUT_PULLUP);
 
@@ -73,8 +84,8 @@ void setup() {
 
 	myservo.attach(SERVO_PIN); 
   
-  Serial.println("");
-  Serial.println("Warming up.");
+  RFsendmsg("Warming up.");
+
 }
 
 void loop() {
@@ -89,13 +100,12 @@ void loop() {
   long readiness_countdown = gbl_currentMillis - gbl_startMillis;
   
 	if ((readiness_countdown > WARMUP_TIME) and (not gbl_ready_to_use) and (not gbl_trap_sprung)) {
-      Serial.println("");
-      Serial.println("Arming.");
+      RFsendmsg("Arming.");
 		  gbl_ready_to_use = true;
 	}
   
   if ((readiness_countdown > warm_arm_time) and (not gbl_armed) and (not gbl_trap_sprung)) {
-      Serial.println("Trap Armed.");
+      RFsendmsg("Trap Armed.");
       gbl_armed = true;
   }
   
@@ -129,11 +139,29 @@ void loop() {
 
 }
 
+void RFsendmsg(String M) {
+  Serial.println(M);
+	char text[RF_msg_len] = "";
+	M.toCharArray(text,RF_msg_len);
+	bool ok = radio.write(&text,RF_msg_len);
+}
+void set_TX_mode(){
+  if (RF_Mode != "TX") {
+    RF_Mode = "TX";
+    radio.stopListening(); // put radio in TX mode
+  }
+}
+void set_RX_mode(){
+  if (RF_Mode != "RX") {
+    RF_Mode = "RX";
+    radio.startListening(); // put radio in RX mode
+  }
+}
 void trigger_alarm() {
 	gbl_ready_to_use = false;
 	gbl_armed = false;
   gbl_trap_sprung = true;
-	Serial.print(" Alarm triggered ");
+	RFsendmsg(" Alarm triggered ");
 	myservo.write(SPRING_TRAP_POS);
 }
 
@@ -141,14 +169,14 @@ void check_sensor_ranges() {
   int reading_spike = 0;
 	int sensor_reading = get_sensor_reading();
   if (gbl_armed) {
-    Serial.print("min ");
-    Serial.print(gbl_min_sensor_reading);
-    Serial.print(", ");
-    Serial.print("max ");
-    Serial.print(gbl_max_sensor_reading);
-    Serial.print(", ");
-    Serial.print("sensor_reading ");
-    Serial.println(sensor_reading);
+    
+    String M = String(gbl_min_sensor_reading, DEC);
+    M += " - ";
+    M += String(gbl_max_sensor_reading, DEC);
+    M += ": ";
+    M += String(sensor_reading, DEC);
+
+    RFsendmsg(M);
 
     if (sensor_reading < gbl_min_sensor_reading) {
       reading_spike = gbl_min_sensor_reading - sensor_reading;
