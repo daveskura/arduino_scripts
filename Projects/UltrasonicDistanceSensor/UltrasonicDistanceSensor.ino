@@ -1,8 +1,8 @@
-/*arduino:avr:uno
+/*arduino:avr:nano
   Dave Skura, 2022
 	Ultrasonic Distance Sensor - HC-SR04
-
 */
+
 const int trigPin = 9;
 const int echoPin = 10;
 
