@@ -122,7 +122,7 @@ void trigger_alarm() {
 }
 
 void check_sensor_ranges() {
-	int reading_drop = 0;
+  int reading_spike = 0;
 	int sensor_reading = get_sensor_reading();
   if (gbl_ready_to_use) {
     if (sensor_reading > gbl_max_sensor_reading) {
@@ -143,10 +143,13 @@ void check_sensor_ranges() {
   }
   if (gbl_armed) {
     if (sensor_reading < gbl_min_sensor_reading) {
-      reading_drop = gbl_min_sensor_reading - sensor_reading;
-      if (reading_drop > ALARM_THRESHOLD){
-        trigger_alarm();
-      }
+      reading_spike = gbl_min_sensor_reading - sensor_reading;
+    }
+    if (sensor_reading > gbl_max_sensor_reading) {
+      reading_spike = sensor_reading - gbl_max_sensor_reading;
+    }
+    if (sensor_reading > ALARM_THRESHOLD){
+      trigger_alarm();
     }
   } 
 
