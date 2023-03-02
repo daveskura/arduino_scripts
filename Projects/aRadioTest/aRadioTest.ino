@@ -33,6 +33,7 @@ void loop() {
 	char text[RF_msg_len] = "";
 	M.toCharArray(text,RF_msg_len);
 	bool ok = radio.write(&text,RF_msg_len);
+  Serial.print(M);
 	delay(5000);
 }
 
