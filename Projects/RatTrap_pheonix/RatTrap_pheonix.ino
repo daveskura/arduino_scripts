@@ -23,18 +23,15 @@
 	MISC	->	12
 */
 
-const String VERSION = "3.0.20230302";
+const String VERSION = "3.0.20230305";
 
 #include <Servo.h>
-#include <RF24.h>
+// #include <RF24.h>
 
-RF24 radio(7, 8); // CE, CSN
-const byte address[6] = "00001";
-int RF_msg_len = 50;
-String RF_Mode = ""; // TX for transmit or RX for receive
-
-const int SENSOR_TRIG_PIN = 4;
-const int SENSOR_ECHO_PIN = 5;
+//RF24 radio(7, 8); // CE, CSN
+//const byte address[6] = "00001";
+//int RF_msg_len = 50;
+//String RF_Mode = ""; // TX for transmit or RX for receive
 
 const unsigned long WARMUP_TIME = 1000;  //the value is a number of milliseconds
 const unsigned long ARMING_TIME = 5000;  //the value is a number of milliseconds
@@ -44,6 +41,7 @@ const int SPRING_TRAP_POS = 115;
 #define BUTTON1 A2
 #define BUTTON2 A3
 #define SERVO_PIN 2
+#define IR_BEAM_PIN 4
 
 Servo myservo;  
 
@@ -61,8 +59,8 @@ unsigned long gbl_currentMillis;
 
 void setup() {
   Serial.begin(9600); // Starts the serial communication
-	pinMode(SENSOR_TRIG_PIN, OUTPUT); // Sets the SENSOR_TRIG_PIN as an Output
-  pinMode(SENSOR_ECHO_PIN, INPUT); // Sets the SENSOR_ECHO_PIN as an Input
+  pinMode(IR_BEAM_PIN, INPUT_PULLUP);     // INPUT ?
+  
 	pinMode(BUTTON1,INPUT_PULLUP);
   pinMode(BUTTON2,INPUT_PULLUP);
 
@@ -76,14 +74,15 @@ void setup() {
 
 	myservo.attach(SERVO_PIN); 
   
+  /*
   radio.begin();
   radio.openReadingPipe(0, address);
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_MIN);
 	
   set_TX_mode();
-  
-  RFsendmsg("Warming up. checking sensor.");
+  */
+  logmsg("Warming up.");
 
 }
 
@@ -99,12 +98,12 @@ void loop() {
   long readiness_countdown = gbl_currentMillis - gbl_startMillis;
   
 	if ((readiness_countdown > WARMUP_TIME) and (not gbl_ready_to_use) and (not gbl_trap_sprung)) {
-      RFsendmsg("Arming.");
+      logmsg("Arming.");
 		  gbl_ready_to_use = true;
 	}
   
   if ((readiness_countdown > warm_arm_time) and (not gbl_armed) and (gbl_ready_to_use)) {
-      RFsendmsg("Trap Armed.");
+      logmsg("Trap Armed.");
       gbl_armed = true;
   }  
 
@@ -131,94 +130,45 @@ void loop() {
       delay(15);                       // waits 15 ms for the servo to reach the position
     }
   } else if (gbl_armed) {
-		check_sensor_ranges();
-		delay(2000);
+    if ( chk_IR_beam()) {
+      trigger_alarm(); 
+    }
 	}
 
 }
 
-void RFsendmsg(String M) {
+bool chk_IR_beam() {
+	int sensorState = digitalRead(IR_BEAM_PIN);
+	bool isbroken = false;
+	
+	// check if the sensor beam is broken
+	if (sensorState == LOW) {     
+		digitalWrite(LED_BUILTIN, HIGH);  
+		isbroken = true;
+		//Serial.println("IR beam broken");
+	} else {
+		digitalWrite(LED_BUILTIN, LOW); 
+		isbroken = false;
+		//Serial.println("Good IR beam");
+	}
+	return isbroken;
+
+}
+
+void logmsg(String M) {
+  /*
 	char text[RF_msg_len] = "";
 	M.toCharArray(text,RF_msg_len);
 	bool ok = radio.write(&text,RF_msg_len);
+  */
   Serial.println(M);
-}
-
-void set_TX_mode(){
-  if (RF_Mode != "TX") {
-    RF_Mode = "TX";
-    radio.stopListening(); // put radio in TX mode
-  }
-}
-void set_RX_mode(){
-  if (RF_Mode != "RX") {
-    RF_Mode = "RX";
-    radio.startListening(); // put radio in RX mode
-  }
 }
 
 void trigger_alarm() {
 	gbl_ready_to_use = false;
 	gbl_armed = false;
   gbl_trap_sprung = true;
-	//RFsendmsg(" Alarm triggered ");
-	myservo.write(SPRING_TRAP_POS);
-}
-
-void check_sensor_ranges() {
-  int reading_spike = 0;
-	int sensor_reading = get_sensor_reading();
-  String M = String(gbl_min_sensor_reading, DEC);
-  M += " - ";
-  M += String(gbl_max_sensor_reading, DEC);
-  M += ": ";
-  M += String(sensor_reading, DEC);
-
-  if (gbl_armed) {
-    RFsendmsg(M);
-
-    if (sensor_reading < gbl_min_sensor_reading) {
-      reading_spike = gbl_min_sensor_reading - sensor_reading;
-    }
-    if (sensor_reading > gbl_max_sensor_reading) {
-      reading_spike = sensor_reading - gbl_max_sensor_reading;
-    }
-
-    if (reading_spike > ALARM_THRESHOLD){
-      M += ": ";
-      M += String(reading_spike, DEC);
-      M += String("- ARLM ");
-      RFsendmsg(M);
-      trigger_alarm();
-    }
-  }
-  /* 
-  if (gbl_ready_to_use) {
-    if (sensor_reading > gbl_max_sensor_reading) {
-      gbl_max_sensor_reading = sensor_reading;
-    }
-    if (sensor_reading < gbl_min_sensor_reading) {
-      gbl_min_sensor_reading = sensor_reading;
-    }
-  }
-  */
-
-}
-
-int get_sensor_reading() {
-	long duration;
-	int distance;
-
-	// Clears the SENSOR_TRIG_PIN
-  digitalWrite(SENSOR_TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  // Sets the SENSOR_TRIG_PIN on HIGH state for 10 micro seconds
-  digitalWrite(SENSOR_TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(SENSOR_TRIG_PIN, LOW);
-  // Reads the SENSOR_ECHO_PIN, returns the sound wave travel time in microseconds
-  duration = pulseIn(SENSOR_ECHO_PIN, HIGH);
-  // Calculating the distance
-  distance = duration * 0.034 / 2;
-  return distance;
+	logmsg(" Alarm triggered ");
+  gbl_servo_pos = SPRING_TRAP_POS;
+	myservo.write(gbl_servo_pos);
 }
