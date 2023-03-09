@@ -1,7 +1,11 @@
 /*arduino:avr:uno
   Dave Skura, 2022
-	Ultrasonic Distance Sensor - HC-SR04
 
+	Adafruit IR Break Beam Sensors with Premium Wire Header Ends - 3mm LEDs
+	https://www.adafruit.com/product/2167
+
+	IRBeam
+		PIN 4
 
 	Servo
 	 +5vdc
@@ -14,24 +18,15 @@
 	BUTTON2
 	 PIN  A3
 
-	(NRF24L01) Wireless Module Transceiver 
-	CE		->	7
-	CSN		->	8
-	MOSI	->	11
-	SCK		->	13
-	IRQ		->	Not Used	
-	MISC	->	12
+	White LED 6
+	Red LED 7
+
+
 */
 
-const String VERSION = "3.0.20230305";
+const String VERSION = "3.0.20230306";
 
 #include <Servo.h>
-// #include <RF24.h>
-
-//RF24 radio(7, 8); // CE, CSN
-//const byte address[6] = "00001";
-//int RF_msg_len = 50;
-//String RF_Mode = ""; // TX for transmit or RX for receive
 
 const unsigned long WARMUP_TIME = 1000;  //the value is a number of milliseconds
 const unsigned long ARMING_TIME = 5000;  //the value is a number of milliseconds
@@ -42,6 +37,8 @@ const int SPRING_TRAP_POS = 115;
 #define BUTTON2 A3
 #define SERVO_PIN 2
 #define IR_BEAM_PIN 4
+#define WHITE_LED 6
+#define RED_LED 7
 
 Servo myservo;  
 
@@ -64,6 +61,9 @@ void setup() {
 	pinMode(BUTTON1,INPUT_PULLUP);
   pinMode(BUTTON2,INPUT_PULLUP);
 
+  pinMode(WHITE_LED,OUTPUT);
+  pinMode(RED_LED,OUTPUT);
+
   gbl_startMillis = millis();  //initial start time
 
   gbl_min_sensor_reading = 52;
@@ -74,15 +74,11 @@ void setup() {
 
 	myservo.attach(SERVO_PIN); 
   
-  /*
-  radio.begin();
-  radio.openReadingPipe(0, address);
-  radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
-	
-  set_TX_mode();
-  */
   logmsg("Warming up.");
+	
+	digitalWrite(RED_LED,HIGH);
+	analogWrite(WHITE_LED,125);
+
 
 }
 
@@ -98,13 +94,22 @@ void loop() {
   long readiness_countdown = gbl_currentMillis - gbl_startMillis;
   
 	if ((readiness_countdown > WARMUP_TIME) and (not gbl_ready_to_use) and (not gbl_trap_sprung)) {
-      logmsg("Arming.");
-		  gbl_ready_to_use = true;
+    digitalWrite(RED_LED,LOW);
+  	analogWrite(WHITE_LED,LOW);
+    delay(500);
+    digitalWrite(RED_LED,HIGH);
+  	analogWrite(WHITE_LED,125);
+    delay(500);
+
+    logmsg("Arming.");
+    gbl_ready_to_use = true;
 	}
   
   if ((readiness_countdown > warm_arm_time) and (not gbl_armed) and (gbl_ready_to_use)) {
-      logmsg("Trap Armed.");
-      gbl_armed = true;
+    digitalWrite(RED_LED,LOW);
+    digitalWrite(WHITE_LED,HIGH);
+    logmsg("Trap Armed.");
+    gbl_armed = true;
   }  
 
 	if (btn1 == LOW) {
@@ -133,7 +138,12 @@ void loop() {
     if ( chk_IR_beam()) {
       trigger_alarm(); 
     }
-	}
+	} else if (gbl_trap_sprung) {
+    digitalWrite(RED_LED,LOW);
+    delay(500);
+    digitalWrite(RED_LED,HIGH);
+    delay(500);
+  }
 
 }
 
@@ -156,11 +166,6 @@ bool chk_IR_beam() {
 }
 
 void logmsg(String M) {
-  /*
-	char text[RF_msg_len] = "";
-	M.toCharArray(text,RF_msg_len);
-	bool ok = radio.write(&text,RF_msg_len);
-  */
   Serial.println(M);
 }
 
