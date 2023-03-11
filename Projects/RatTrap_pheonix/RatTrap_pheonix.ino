@@ -38,7 +38,7 @@ const int SENSOR_ECHO_PIN = 5;
 
 const unsigned long WARMUP_TIME = 1000;  //the value is a number of milliseconds
 const unsigned long ARMING_TIME = 5000;  //the value is a number of milliseconds
-const int ALARM_THRESHOLD = 5;
+const int ALARM_THRESHOLD = 9;
 const int SPRING_TRAP_POS = 115;
 
 #define BUTTON1 A2
