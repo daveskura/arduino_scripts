@@ -77,7 +77,7 @@ void setup() {
   logmsg("Warming up.");
 	
 	digitalWrite(RED_LED,HIGH);
-	analogWrite(WHITE_LED,125);
+	analogWrite(WHITE_LED,HIGH);
 
 
 }
@@ -92,13 +92,17 @@ void loop() {
 	gbl_currentMillis = millis();  
   long warm_arm_time = WARMUP_TIME + ARMING_TIME;
   long readiness_countdown = gbl_currentMillis - gbl_startMillis;
+	if (readiness_countdown > 86000000) { // one day has passed
+		// reset counter to one day
+		gbl_startMillis = gbl_currentMillis - warm_arm_time;
+	}
   
 	if ((readiness_countdown > WARMUP_TIME) and (not gbl_ready_to_use) and (not gbl_trap_sprung)) {
     digitalWrite(RED_LED,LOW);
   	analogWrite(WHITE_LED,LOW);
     delay(500);
     digitalWrite(RED_LED,HIGH);
-  	analogWrite(WHITE_LED,125);
+  	analogWrite(WHITE_LED,HIGH);
     delay(500);
 
     logmsg("Arming.");
