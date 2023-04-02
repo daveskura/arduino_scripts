@@ -29,6 +29,7 @@ const String VERSION = "3.0.20230402";
 #include <Servo.h>
 
 const int SPRING_TRAP_POS = 115;
+const int TRAP_SET_POS = 162;
 
 #define BUTTON1 A2
 #define BUTTON2 A3
@@ -41,13 +42,14 @@ Servo myservo;
 
 // defines global variables
 
-int gbl_servo_pos = 106;
+int gbl_servo_pos = 162;
 int gbl_min_sensor_reading; // 52
 int gbl_max_sensor_reading; // 62
 bool gbl_trap_sprung;
 
 void setup() {
-  Serial.begin(9600); // Starts the serial communication
+  // Serial.begin(9600); // Starts the serial communication
+  // Serial.println("hello");
   pinMode(IR_BEAM_PIN, INPUT_PULLUP);     // INPUT ?
   
 	pinMode(BUTTON1,INPUT_PULLUP);
@@ -56,10 +58,12 @@ void setup() {
   pinMode(WHITE_LED,OUTPUT);
   pinMode(RED_LED,OUTPUT);
 
+  gbl_servo_pos = TRAP_SET_POS;
+  myservo.write(gbl_servo_pos);
+
   gbl_min_sensor_reading = 52;
   gbl_max_sensor_reading = 62;
-  gbl_trap_sprung = false;
-
+  
 	myservo.attach(SERVO_PIN); 
   
 	digitalWrite(RED_LED,LOW);
@@ -74,59 +78,32 @@ void loop() {
 
 	if (btn1 == LOW) {
     if (gbl_servo_pos < 180) {
-    	digitalWrite(RED_LED,HIGH);
-      gbl_trap_sprung = false;
-
-      gbl_servo_pos = gbl_servo_pos + 1; // goes from 0 degrees to 180 degrees
+      gbl_servo_pos = gbl_servo_pos + 2; // goes from 0 degrees to 180 degrees
       myservo.write(gbl_servo_pos);              // tell servo to go to pos in variable 'gbl_servo_pos'
       delay(15);                       // waits 15 ms for the servo to reach the position
     }
   } else if (btn2 == LOW) {
     if (gbl_servo_pos > 0) {
-    	digitalWrite(RED_LED,HIGH);
-      gbl_trap_sprung = false;
-
-      gbl_servo_pos = gbl_servo_pos - 1; // goes from 0 degrees to 180 degrees
+      gbl_servo_pos = gbl_servo_pos - 2; // goes from 0 degrees to 180 degrees
       myservo.write(gbl_servo_pos);              // tell servo to go to position in variable 'gbl_servo_pos'
       delay(15);                       // waits 15 ms for the servo to reach the position
     }
-  } else {
-  	digitalWrite(RED_LED,LOW);
   }
-  
 
-  if ( chk_IR_beam()) {
-    gbl_trap_sprung = true;
+	int sensorState = digitalRead(IR_BEAM_PIN);
+	if (sensorState == LOW) {     
     gbl_servo_pos = SPRING_TRAP_POS;
     myservo.write(gbl_servo_pos);
+    digitalWrite(RED_LED,HIGH);
+    
   }
 
-  if (gbl_trap_sprung) {
-    digitalWrite(WHITE_LED,LOW);
-    delay(10000);
-    digitalWrite(WHITE_LED,HIGH);
-    delay(10000);
+  if (gbl_servo_pos == SPRING_TRAP_POS) {
+  	digitalWrite(WHITE_LED,HIGH);
+    delay(5000);
+  	digitalWrite(WHITE_LED,LOW);
+    delay(25000);
   }
 
-}
-
-bool chk_IR_beam() {
-	int sensorState = digitalRead(IR_BEAM_PIN);
-	bool isbroken = false;
-	
-	// check if the sensor beam is broken
-	if (sensorState == LOW) {     
-		isbroken = true;
-		//Serial.println("IR beam broken");
-	} else {
-		isbroken = false;
-		//Serial.println("Good IR beam");
-	}
-	return isbroken;
-
-}
-
-void logmsg(String M) {
-  Serial.println(M);
 }
 
