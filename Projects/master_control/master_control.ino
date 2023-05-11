@@ -44,6 +44,9 @@ Menus
      
      - View RF Traffic 
 		 - Chicken Car
+				- What Version
+				- Joystick
+				- -Back
      
 
 analogue joystick 
@@ -74,7 +77,7 @@ SW   -> not used  *Used when joystick is clicked
 #define RT_BUTTON A0
 
 String Device_Name = "Master Control";
-String Version = "20220625";
+String Version = "20230511.7";
 
 String RF_Mode = ""; // TX for transmit or RX for receive
 
@@ -96,9 +99,10 @@ String iMode_names[iMode_max] = {
 		};
 
 
-#define iMode_chickencar_mnu_max 2
+#define iMode_chickencar_mnu_max 3
 String chickencar_mnu_names[iMode_chickencar_mnu_max] = {
     "Back"        
+		,"Joystick"
 		,"What Version"
 		};
 
@@ -135,6 +139,7 @@ int iMode_beetle_mnu = 0;						//  iMode == 0
 int iMode_defender_mnu = 0;					//  iMode == 1 
 int iMode_view_rf_traffic = 0;      //  iMode == 2 
 int iMode_chickencar_mnu = 0;				//  iMode == 3 
+int iJoystick_Mode = 0;							//	[0=beetle,1=chickencar]
 
 int Download_From_Remote_Device = 0;
 
@@ -261,6 +266,7 @@ void loop() {
 							iMenu_level = 0;
 							current_msg();
 						} else if (beetle_mnu_names[iMode_beetle_mnu] == "Joystick") {
+							iJoystick_Mode = 0;
 							iJoystick_control = -1;
 							iMode = 0;
 							iMenu_level = 0;
@@ -346,13 +352,19 @@ void loop() {
 						iMode = 0;
 						iMenu_level = 0;
 						current_msg();
+					} else if (chickencar_mnu_names[iMode_chickencar_mnu] == "Joystick") {
+							iJoystick_Mode = 1;
+							iJoystick_control = -1;
+							iMode = 0;
+							iMenu_level = 0;
+
 					} else { // a send command was selected
 						if (chickencar_mnu_names[iMode_chickencar_mnu] == "What Version") {
 							RF_send("CC:What Version");
 							iMode_view_rf_traffic = -1;
 							delay(500);
 						}
-					}
+					} 
 				} else {
 					iMode_chickencar_mnu=1;
 					iMenu_level=1;
@@ -374,6 +386,24 @@ void loop() {
 		yValue = analogRead(joyY);
 
 		RF = GetJoystickMsg(xValue, yValue);
+		if (iJoystick_Mode == 1) {
+			String newstr;
+			int ixr = RF.indexOf("XR");
+			int ixl = RF.indexOf("XL");
+			int iyr = RF.indexOf("YR");
+			int iyf = RF.indexOf("YF");
+			if (ixr > -1) {
+				RF.replace("XR","XL");
+			} else if (ixl > -1) {
+				RF.replace("XL","XR");
+			}
+
+			if (iyr > -1) {
+				RF.replace("YR","YF");
+			} else if (iyf > -1) {
+				RF.replace("YF","YR");
+			}
+		}
     RF.toCharArray(text, 50);
   
     if (Previous_RF_Msg == RF) {
@@ -431,13 +461,26 @@ String GetJoystickMsg(int joy_x, int joy_y) {
 		}
 
 		rotate_coords rc(x,y);
-		rc.rotate(45);
 
-		if (rc.new_x > 0) {
-			joyRFmsg +=  "XR:" + String(abs(rc.new_x), DEC); 
+    rc.rotate(45);
+
+    int useX = -1;
+    int useY = -1;
+    
+    if (iJoystick_Mode == 1) {
+      useX = x;
+      useY = y;
+    } else {
+      useX = rc.new_x;      
+      useY = rc.new_y;      
+    }
+
+		if (useX > 0) {
+      joyRFmsg +=  "XR:" + String(abs(useX), DEC); 
+      
 		} else {
-			if (rc.new_x < 0) {
-				joyRFmsg += "XL:" + String(abs(rc.new_x), DEC);
+			if (useX < 0) {
+				joyRFmsg += "XL:" + String(abs(useX), DEC);
 			} else {
 				joyRFmsg += "XS:0";
 			}
@@ -445,11 +488,11 @@ String GetJoystickMsg(int joy_x, int joy_y) {
 
 		joyRFmsg += " and ";
 		
-		if (rc.new_y > 0) {
-			joyRFmsg += "YF:" + String(abs(rc.new_y), DEC);
+		if (useY > 0) {
+			joyRFmsg += "YF:" + String(abs(useY), DEC);
 		} else {
-			if (rc.new_y < 0) {
-				joyRFmsg += "YR:" + String(abs(rc.new_y), DEC);
+			if (useY < 0) {
+				joyRFmsg += "YR:" + String(abs(useY), DEC);
 			} else {
 				joyRFmsg += "YS:0";
 			}
